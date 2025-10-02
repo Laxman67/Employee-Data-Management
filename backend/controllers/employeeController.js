@@ -1,4 +1,5 @@
 import Employee from "../models/Employee.js";
+import logger from "../utils/logger.js";
 
 export const getEmployees = async (req, res) => {
   try {
@@ -63,7 +64,8 @@ export const updateEmployee = async (req, res) => {
     res.status(200).json({ success: true, data: emp });
     logger.info("Employee updated: %o", emp);
   } catch (err) {
-    res.status(400).json({ success: false, error: err.message });
+    console.log(err);
+
     logger.error("Error updating employee: %o", err);
   }
 };

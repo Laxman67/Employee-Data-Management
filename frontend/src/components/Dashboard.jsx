@@ -8,19 +8,19 @@ const Dashboard = () => {
   const [editingEmployee, setEditingEmployee] = useState(null); // currently editing
   const [isModalOpen, setIsModalOpen] = useState(false); // modal visibility
 
+  // Fetch initial employee data (could be from an API)
+
+  const fetchEmployees = async () => {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/`);
+    const { data } = await response.json();
+    console.log(data);
+
+    setEmployees(data);
+  };
   useEffect(() => {
-    // Fetch initial employee data (could be from an API)
-
-    const fetchEmployees = async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/`);
-      const { data } = await response.json();
-      console.log(data);
-
-      setEmployees(data);
-    };
     fetchEmployees();
     console.log(employees);
-  }, [setEmployees]);
+  }, []);
   // When user clicks "Edit"
   const handleEdit = (employee) => {
     setEditingEmployee(employee);
@@ -34,23 +34,70 @@ const Dashboard = () => {
   };
 
   // Update employee after editing
-  const handleUpdateEmployee = (updatedEmployee) => {
-    setEmployees(
-      employees.map((emp) =>
-        emp._id === updatedEmployee._id ? updatedEmployee : emp
-      )
-    );
-    handleCloseModal();
+  const handleUpdateEmployee = async (updatedEmployee) => {
+    console.log(updatedEmployee);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/${updatedEmployee._id}`,
+        {
+          method: "PUT", // backend expects PUT
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedEmployee),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update employee");
+      }
+
+      const data = await response.json();
+      console.log(data);
+
+      fetchEmployees(); // refresh employee list
+      handleCloseModal(); // close modal
+    } catch (error) {
+      console.error("Error updating employee:", error);
+    }
   };
 
   // Add employee
-  const handleAddEmployee = (newEmployee) => {
-    setEmployees([...employees, newEmployee]);
+  const handleAddEmployee = async (newEmployee) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newEmployee),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add employee");
+      }
+      fetchEmployees(); // refresh employee list
+    } catch (error) {
+      console.error("Error adding employee:", error);
+    }
   };
 
   // Delete employee
-  const handleDelete = (id) => {
-    setEmployees(employees.filter((emp) => emp._id !== id));
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete employee");
+      }
+
+      fetchEmployees(); // refresh employee list
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+    }
   };
   return (
     <div>
